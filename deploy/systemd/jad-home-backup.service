@@ -1,0 +1,21 @@
+[Unit]
+Description=JAD HOME daily verified local backup
+After=local-fs.target
+OnFailure=jad-home-alert@%n.service
+
+[Service]
+Type=oneshot
+User=jad-home
+Group=jad-home
+WorkingDirectory=/opt/jad-home/current
+EnvironmentFile=/etc/jad-home/jad-home.env
+ExecStart=/opt/jad-home/current/scripts/backup.sh daily
+UMask=0027
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/jad-home/data

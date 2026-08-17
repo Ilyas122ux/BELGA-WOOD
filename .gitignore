@@ -1,0 +1,62 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+client/dist/
+server/dist/
+shared/dist/
+netlify/functions/*.js
+netlify/functions/*.js.map
+.netlify/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!.env.production.example
+*.pem
+*.key
+*service-account*.json
+*service_account*.json
+google-service-account*.json
+belga-wood-*.json
+cloudinary*.json
+
+# Logs and local caches
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+coverage/
+.cache/
+.vite/
+.tmp/
+.git.invalid-backup-*/
+
+# Local/private runtime data
+server/storage/.catalogue.lock
+server/storage/*.tmp.xlsx
+server/storage/*.xlsx
+server/storage/uploads/*
+!server/storage/uploads/.gitkeep
+server/storage/backups/*
+!server/storage/backups/.gitkeep
+server/storage/sessions/*
+!server/storage/sessions/.gitkeep
+
+# Migration/export artifacts that may contain real catalogue data
+manifests/
+server/storage/manifests/
+*.manifest.json
+*migration*.json
+*export*.json
+*.tar.gz
+*.sha256
+.staging-*
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

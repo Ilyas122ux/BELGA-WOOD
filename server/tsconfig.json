@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "dist",
+    "rootDir": "src",
+    "sourceMap": true,
+    "noUncheckedIndexedAccess": false,
+    "types": ["node"]
+  },
+  "include": ["src/index.ts", "src/app.ts", "src/belga/**/*.ts", "src/config/env.ts", "src/middleware/errorHandler.ts", "src/middleware/notFoundHandler.ts", "src/services/rateLimit.ts", "src/types/**/*.d.ts"]
+}

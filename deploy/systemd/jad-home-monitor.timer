@@ -1,0 +1,11 @@
+[Unit]
+Description=Check JAD HOME every ten minutes
+
+[Timer]
+OnBootSec=3m
+OnUnitInactiveSec=10m
+AccuracySec=1m
+Unit=jad-home-monitor.service
+
+[Install]
+WantedBy=timers.target

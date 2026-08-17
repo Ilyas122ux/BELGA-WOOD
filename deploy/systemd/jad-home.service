@@ -1,0 +1,38 @@
+[Unit]
+Description=JAD HOME web application
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=120
+StartLimitBurst=5
+OnFailure=jad-home-alert@%n.service
+
+[Service]
+Type=simple
+User=jad-home
+Group=jad-home
+WorkingDirectory=/opt/jad-home/current
+EnvironmentFile=/etc/jad-home/jad-home.env
+ExecStart=/usr/local/bin/node server/dist/index.js
+ExecStartPost=/usr/bin/curl --fail --silent --show-error --retry 15 --retry-delay 2 --retry-connrefused http://127.0.0.1:4000/api/ready
+Restart=always
+RestartSec=5s
+TimeoutStartSec=45s
+TimeoutStopSec=30s
+KillSignal=SIGTERM
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ReadWritePaths=/srv/jad-home/data
+LogRateLimitIntervalSec=30s
+LogRateLimitBurst=200
+
+[Install]
+WantedBy=multi-user.target

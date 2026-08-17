@@ -1,0 +1,11 @@
+/srv/jad-home/data/logs/*.log {
+    daily
+    rotate 14
+    size 5M
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+    su jad-home jad-home
+}

@@ -1,0 +1,15 @@
+[Unit]
+Description=Publish a JAD HOME failure notification for %i
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=jad-home
+Group=jad-home
+WorkingDirectory=/opt/jad-home/current
+EnvironmentFile=/etc/jad-home/jad-home.env
+ExecStart=/opt/jad-home/current/scripts/notify.sh %i
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
