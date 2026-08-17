@@ -403,6 +403,17 @@ export class GoogleSheetsBelgaRepository implements BelgaRepository {
     this.cache = { expires: Date.now() + this.ttl, data };
     return data;
   }
+  async recordRateLimitAttempt(name: string, keyHash: string, windowMs: number) {
+    const occurredAt = new Date().toISOString();
+    await this.createRow("SecurityEvents", { name, keyHash, occurredAt });
+    const cutoff = Date.now() - windowMs;
+    return (await this.list("SecurityEvents")).filter(
+      (row) =>
+        row.name === name &&
+        row.keyHash === keyHash &&
+        Date.parse(String(row.occurredAt || row.createdAt)) >= cutoff,
+    ).length;
+  }
   getSpreadsheetId() {
     return this.spreadsheetId;
   }

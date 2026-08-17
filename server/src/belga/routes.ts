@@ -143,7 +143,7 @@ export function createBelgaRoutes(repo: BelgaRepository) {
   });
   r.post(
     "/quotes",
-    durableRateLimit({ name: "quote", windowMs: 600000, limit: 5 }),
+    durableRateLimit({ name: "quote", windowMs: 600000, limit: 5 }, repo),
     async (req, res, next) => {
       try {
         const b = clean(req.body);
@@ -188,7 +188,7 @@ export function createBelgaRoutes(repo: BelgaRepository) {
   );
   r.post(
     "/auth/login",
-    durableRateLimit({ name: "admin-login", windowMs: 900000, limit: 8 }),
+    durableRateLimit({ name: "admin-login", windowMs: 900000, limit: 8 }, repo),
     async (req, res) => {
       const email = String(req.body?.email || "").toLowerCase(),
         password = String(req.body?.password || "");

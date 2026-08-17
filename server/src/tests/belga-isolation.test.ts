@@ -158,6 +158,7 @@ describe("Google Sheets BELGA WOOD", () => {
         .duplicate,
     ).toBe(true);
     expect(await repo.list("QuoteRequests")).toHaveLength(1);
+    expect((await request(app).get("/api/public")).status).toBe(200);
     expect((await request(app).get("/api/admin/projects")).status).toBe(401);
     const agent = request.agent(app);
     await agent
@@ -167,6 +168,26 @@ describe("Google Sheets BELGA WOOD", () => {
     expect(
       (await agent.get("/api/admin/google-sheet")).body.data.url,
     ).toContain("belga-sheet-test");
+  });
+  it("uses persistent Google Sheets throttling in production", async () => {
+    const previous = env.isProduction;
+    env.isProduction = true;
+    try {
+      const response = await request(createApp(repo)).post("/api/quotes").send({
+        clientRequestId: crypto.randomUUID(),
+        fullName: "Sara",
+        phone: "0612345678",
+        city: "Casablanca",
+        message: "Cuisine",
+      });
+      expect(response.status).toBe(201);
+      const events = await repo.list("SecurityEvents");
+      expect(events).toHaveLength(1);
+      expect(events[0]).toMatchObject({ name: "quote" });
+      expect(String(events[0]?.keyHash)).toMatch(/^[a-f0-9]{64}$/);
+    } finally {
+      env.isProduction = previous;
+    }
   });
   it("keeps Cloudinary optional for public reads", async () => {
     expect((await repo.publicData()).settings.companyName).toBe("BELGA WOOD");

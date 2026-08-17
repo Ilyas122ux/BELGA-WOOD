@@ -85,6 +85,7 @@ export const SHEETS = {
     "createdAt",
     "updatedAt",
   ],
+  SecurityEvents: ["id", "name", "keyHash", "occurredAt", "createdAt"],
   Settings: ["key", "value"],
 } as const;
 export type SheetName = keyof typeof SHEETS;
@@ -119,4 +120,9 @@ export interface BelgaRepository {
     testimonials: Row[];
     settings: Record<string, string>;
   }>;
+  recordRateLimitAttempt?(
+    name: string,
+    keyHash: string,
+    windowMs: number,
+  ): Promise<number>;
 }
