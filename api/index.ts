@@ -7,9 +7,8 @@ type App = ReturnType<typeof createApp>;
 let appPromise: Promise<App> | undefined;
 
 function getApp() {
-  appPromise ??= Promise.resolve().then(async () => {
+  appPromise ??= Promise.resolve().then(() => {
     const repository = new GoogleSheetsBelgaRepository();
-    await repository.initialize();
     return createApp(repository);
   });
   return appPromise;

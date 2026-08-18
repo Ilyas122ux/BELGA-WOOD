@@ -31,6 +31,12 @@ describe("Vercel routing", () => {
     }
   });
 
+  it("does not reinitialize every Google Sheet on each Vercel cold start", () => {
+    const entry = fs.readFileSync(path.resolve("api/index.ts"), "utf8");
+    expect(entry).not.toContain("repository.initialize()");
+    expect(entry).toContain("createApp(repository)");
+  });
+
   it.each([
     ["/api?__api_path=public", "/api/public"],
     ["/api?__api_path=admin%2Fdashboard", "/api/admin/dashboard"],
