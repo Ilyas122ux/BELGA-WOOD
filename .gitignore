@@ -60,3 +60,5 @@ server/storage/manifests/
 Thumbs.db
 .idea/
 .vscode/
+
+.vercel/
