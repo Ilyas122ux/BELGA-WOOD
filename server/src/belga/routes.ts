@@ -52,6 +52,7 @@ const configure = () =>
     secure: true,
   });
 const productPriceTypes = new Set(["fixed", "starting_from", "on_request"]);
+const maxProductImages = 6;
 const validateProduct = (body: Row) => {
   const priceType = String(body.priceType || "on_request");
   if (!body.name || !body.categoryId || !body.shortDescription || !body.description)
@@ -405,6 +406,33 @@ export function createBelgaRoutes(repo: BelgaRepository) {
         return res
           .status(400)
           .json({ success: false, data: null, message: "Dossier invalide." });
+      const entityType = String(req.body.entityType || ""),
+        entityId = String(req.body.entityId || "");
+      if (["product", "product-gallery"].includes(entityType) && entityId) {
+        const [products, images] = await Promise.all([
+          repo.list("Products"),
+          repo.list("ProductImages"),
+        ]);
+        const product = products.find((row) => row.id === entityId);
+        if (!product)
+          return res.status(404).json({
+            success: false,
+            data: null,
+            message: "Produit introuvable.",
+          });
+        const galleryCount = images.filter(
+          (row) => row.productId === entityId,
+        ).length;
+        const total = galleryCount + (product.coverImageUrl ? 1 : 0);
+        const addsImage =
+          entityType === "product-gallery" || !product.coverImageUrl;
+        if (addsImage && total >= maxProductImages)
+          return res.status(409).json({
+            success: false,
+            data: null,
+            message: `Un produit accepte au maximum ${maxProductImages} images.`,
+          });
+      }
       configure();
       const result = await new Promise<Record<string, unknown>>(
         (resolve, reject) =>
@@ -421,8 +449,6 @@ export function createBelgaRoutes(repo: BelgaRepository) {
       );
       const imageUrl = String(result.secure_url || ""),
         imagePublicId = String(result.public_id || "");
-      const entityType = String(req.body.entityType || ""),
-        entityId = String(req.body.entityId || "");
       try {
         if (entityType === "product-gallery" && entityId)
           await repo.createRow("ProductImages", { productId: entityId, imageUrl, imagePublicId, altText: String(req.body.altText || ""), displayOrder: Number(req.body.displayOrder || 0) });

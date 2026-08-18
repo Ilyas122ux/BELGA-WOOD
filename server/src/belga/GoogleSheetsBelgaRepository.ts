@@ -378,7 +378,8 @@ export class GoogleSheetsBelgaRepository implements BelgaRepository {
         .map((product) => Object.assign({}, product, {
           images: productImages
             .filter((image) => image.productId === product.id)
-            .sort((a, b) => num(a.displayOrder) - num(b.displayOrder)),
+            .sort((a, b) => num(a.displayOrder) - num(b.displayOrder))
+            .slice(0, product.coverImageUrl ? 5 : 6),
         })),
       services: services
         .filter((x) => bool(x.active))

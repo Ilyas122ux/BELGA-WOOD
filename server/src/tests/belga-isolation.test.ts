@@ -199,4 +199,26 @@ describe("Google Sheets BELGA WOOD", () => {
       (await agent.get("/api/admin/media/status")).body.data.configured,
     ).toBe(false);
   });
+  it("limits the public product gallery to six images including the cover", async () => {
+    const product = await repo.createRow("Products", {
+      name: "Cuisine Galerie",
+      categoryId: "category-test",
+      shortDescription: "Cuisine sur mesure",
+      description: "Description complète",
+      priceType: "on_request",
+      coverImageUrl: "https://example.test/cover.webp",
+      active: true,
+    });
+    for (let index = 1; index <= 7; index += 1)
+      await repo.createRow("ProductImages", {
+        productId: product.id,
+        imageUrl: `https://example.test/${index}.webp`,
+        displayOrder: index,
+      });
+    const visible = (await repo.publicData()).products.find(
+      (row) => row.id === product.id,
+    );
+    expect(visible?.images).toHaveLength(5);
+    expect([visible?.coverImageUrl, ...(visible?.images || [])]).toHaveLength(6);
+  });
 });

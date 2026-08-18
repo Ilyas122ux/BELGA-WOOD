@@ -169,6 +169,7 @@ function Manager({ kind }: { kind: string }) {
     [search, setSearch] = useState(""),
     [status, setStatus] = useState("all"),
     [sort, setSort] = useState("displayOrder"),
+    [uploadingProduct, setUploadingProduct] = useState<string | null>(null),
     [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const load = () =>
     api<Row[]>(`/admin/${kind}`)
@@ -263,12 +264,35 @@ function Manager({ kind }: { kind: string }) {
       setError(x instanceof Error ? x.message : "Upload impossible");
     }
   }
-  async function uploadProductGallery(id: string, file: File) {
-    const form = new FormData();
-    form.set("image", file); form.set("folder", "products"); form.set("entityType", "product-gallery"); form.set("entityId", id);
-    form.set("displayOrder", String(productImages.filter(image=>image.productId===id).length+1));
-    try { await api("/admin/media/upload", {method:"POST",body:form}); setProductImages(await api<Row[]>("/admin/product-images")); }
-    catch(x){setError(x instanceof Error?x.message:"Upload impossible");}
+  async function uploadProductGallery(id: string, files: File[]) {
+    const product = rows.find((row) => String(row.id) === id);
+    const galleryCount = productImages.filter((image) => image.productId === id).length;
+    const used = galleryCount + (product?.coverImageUrl ? 1 : 0);
+    const available = Math.max(0, 6 - used);
+    if (!files.length) return;
+    if (files.length > available) {
+      setError(`Vous pouvez encore ajouter ${available} image${available === 1 ? "" : "s"}. Maximum : 6 images par produit.`);
+      return;
+    }
+    setError("");
+    setUploadingProduct(id);
+    try {
+      for (const [index, file] of files.entries()) {
+        const form = new FormData();
+        form.set("image", file);
+        form.set("folder", "products");
+        form.set("entityType", "product-gallery");
+        form.set("entityId", id);
+        form.set("displayOrder", String(galleryCount + index + 1));
+        await api("/admin/media/upload", { method: "POST", body: form });
+      }
+      setProductImages(await api<Row[]>("/admin/product-images"));
+    } catch (x) {
+      setError(x instanceof Error ? x.message : "Upload impossible");
+      setProductImages(await api<Row[]>("/admin/product-images").catch(() => productImages));
+    } finally {
+      setUploadingProduct(null);
+    }
   }
   async function deleteProductGallery(image: Row) {
     if (!window.confirm("Supprimer définitivement cette image de la galerie ?")) return;
@@ -355,7 +379,12 @@ function Manager({ kind }: { kind: string }) {
                     <button onClick={()=>update(String(r.id), {featured:r.featured !== true})}>{r.featured === true ? "Retirer de la une" : "Mettre en avant"}</button></>
                   )}
                   {kind === "products" && <><a href={`/produits/${r.slug}`} target="_blank" rel="noreferrer">Voir</a><button onClick={()=>setEditing(r)}>Modifier</button><button onClick={()=>update(String(r.id),{active:r.active!==true})}>{r.active===true?"Désactiver":"Activer"}</button><button onClick={()=>update(String(r.id),{featured:r.featured!==true})}>{r.featured===true?"Retirer de la une":"Mettre en avant"}</button></>}
-                  {kind === "products" && <label className="upload-small">+ Galerie<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>{const file=e.target.files?.[0];if(file)void uploadProductGallery(String(r.id),file)}}/></label>}
+                  {kind === "products" && (() => {
+                    const galleryCount = productImages.filter((image) => image.productId === r.id).length;
+                    const imageCount = galleryCount + (r.coverImageUrl ? 1 : 0);
+                    const full = imageCount >= 6;
+                    return <><span className="product-image-count">{imageCount}/6 images</span><label className={`upload-small${full ? " disabled" : ""}`}>{uploadingProduct === String(r.id) ? "Envoi…" : "+ Ajouter des images"}<input type="file" multiple disabled={full || uploadingProduct !== null} accept="image/jpeg,image/png,image/webp" onChange={(e)=>{const files=Array.from(e.target.files||[]);e.currentTarget.value="";if(files.length)void uploadProductGallery(String(r.id),files)}}/></label></>;
+                  })()}
                   {["services", "categories"].includes(kind) && (
                     <button
                       onClick={() =>
