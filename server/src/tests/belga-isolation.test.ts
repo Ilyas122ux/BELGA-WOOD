@@ -221,4 +221,22 @@ describe("Google Sheets BELGA WOOD", () => {
     expect(visible?.images).toHaveLength(5);
     expect([visible?.coverImageUrl, ...(visible?.images || [])]).toHaveLength(6);
   });
+  it("creates a unique URL slug for every product", async () => {
+    const input = {
+      name: "Dressing Élégance",
+      categoryId: "category-test",
+      shortDescription: "Dressing sur mesure",
+      description: "Description complète",
+      priceType: "on_request",
+      active: true,
+    };
+    const first = await repo.createRow("Products", input);
+    const second = await repo.createRow("Products", input);
+    const third = await repo.createRow("Products", input);
+    expect([first.slug, second.slug, third.slug]).toEqual([
+      "dressing-elegance",
+      "dressing-elegance-2",
+      "dressing-elegance-3",
+    ]);
+  });
 });

@@ -14,6 +14,12 @@ const slugify = (s: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+const uniqueSlug = (base: string, used: Set<string>) => {
+  if (!used.has(base)) return base;
+  let suffix = 2;
+  while (used.has(`${base}-${suffix}`)) suffix += 1;
+  return `${base}-${suffix}`;
+};
 const bool = (v: unknown) =>
   v === true ||
   v === 1 ||
@@ -218,14 +224,21 @@ export class GoogleSheetsBelgaRepository implements BelgaRepository {
   async createRow(sheet: Exclude<SheetName, "Settings">, input: Row) {
     return this.exclusive(async () => {
       const now = new Date().toISOString(),
+        slugBase =
+          input.slug ||
+          ("title" in input || "name" in input
+            ? slugify(String(input.title || input.name))
+            : ""),
+        slug = slugBase
+          ? uniqueSlug(
+              slugify(String(slugBase)),
+              new Set((await this.list(sheet)).map((item) => String(item.slug || "")).filter(Boolean)),
+            )
+          : "",
         row: Row = {
           ...input,
           id: crypto.randomUUID(),
-          slug:
-            input.slug ||
-            ("title" in input || "name" in input
-              ? slugify(String(input.title || input.name))
-              : ""),
+          slug,
           createdAt: now,
           updatedAt: now,
         };
